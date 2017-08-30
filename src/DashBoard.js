@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+// import ReactDOM from 'react-dom';
 import Dropdown from 'muicss/lib/react/dropdown';
 import DropdownItem from 'muicss/lib/react/dropdown-item';
 
@@ -17,7 +17,7 @@ class DashBoard extends React.Component {
         super(props)
 
         this.state = {
-            activeTab: '1',
+            activeTab: 1,
             category:'',
             quantity: '',
             unitPrice: '',
@@ -71,12 +71,12 @@ class DashBoard extends React.Component {
 
                     </Tabbar>
 
-                    {this.state.activeTab == '1' &&
+                    {this.state.activeTab === 1 &&
                         <h2>
-                            You have tab 1 unread messages.
+                            You have tab 1.
                     </h2>
                     }
-                    {this.state.activeTab == '2' &&
+                    {this.state.activeTab === 2 &&
 
                         <div>
                             <Dropdown color="primary" label="Choose a Category">
@@ -128,7 +128,7 @@ class DashBoard extends React.Component {
                         </div>
 
                     }
-                    {this.state.activeTab == '3' &&
+                    {this.state.activeTab === 3 &&
                         <h2>
                             Reports Page
                     </h2>

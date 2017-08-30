@@ -4,16 +4,17 @@ import React, { Component } from 'react';
 //import './App.css';
 import {
   Button, Toolbar, ToolbarRow,
-  ToolbarSection, ToolbarTitle, Textfield, Content, Tab, Tabbar, FormField, Switch
+  ToolbarSection, ToolbarTitle, Textfield, Content, Tab, Tabbar, FormField, Switch,
+  ListItemText, ListItem, List, ListItemTextSecondary, ListDivider,
 } from 'react-mdc-web/lib';
 import 'material-components-web/dist/material-components-web.min.css';
-// import DashBoard from './DashBoard.js';
+import Update from './Update.js';
 // import Dropdown from 'muicss/lib/react/dropdown';
 // import DropdownItem from 'muicss/lib/react/dropdown-item';
 
 var Parse = require('parse');
-Parse.initialize("05b6e770a6189ba10731fd4686cd695a187b8612");
-Parse.serverURL = 'http://35.194.184.154:80/parse/'
+Parse.initialize("2ed7779a1e311995b116bf020d219acceb36cad4");
+Parse.serverURL = 'http://130.211.75.68:80/parse/'
 
 
 class Login extends Component {
@@ -24,16 +25,23 @@ class Login extends Component {
       username: 'muthu',
       password: 'android',
       loginStatus: false,
-      activeTab: '1',
+      activeTab: 1,
       category: '',
       quantity: '',
       unitPrice: '',
       totalCost: '',
-      comments: ''
+      comments: '',
+      loadUpdate: false,
+      chosenCategoryValues: [],
+      returnedArrayValues: []
     };
     this.handleChange = this.handleChange.bind(this);
     this.submitLogin = this.submitLogin.bind(this);
     this.orderStocks = this.orderStocks.bind(this);
+    this.loadStocks = this.loadStocks.bind(this);
+    this.handleListClick = this.handleListClick.bind(this);
+    // this.loadUpdateComponent = this.loadUpdateComponent.bind(this);
+    // this.loadBasicTabs = this.loadBasicTabs.bind(this)
   }
 
   handleChange({ target }) {
@@ -43,15 +51,36 @@ class Login extends Component {
   }
 
   tryConvert(value, convert) {
+    // this.setState({
+    //   totalCost :  value * convert
+    // });
     const rounded = value * convert;
+    // this.state.totalCost = rounded.toString();
     return rounded.toString();
   }
 
+  loadStocks(e) {
+    var Stocks = Parse.Object.extend("stocks");
+    var query = new Parse.Query(Stocks);
+
+    query.find().then((results) => {
+      if (results.length > 0) {
+        this.setState({
+          returnedArrayValues: results
+        });
+      } else {
+        alert("No data available !!!")
+      }
+    }, (error) => {
+      console.log(error)
+    })
+
+  }
+
   submitLogin(e) {
-    console.log("reached ........." + this.state.username);
+    // console.log("reached ........." + this.state.username);
     Parse.User.logIn(this.state.username, this.state.password, {
-      success: function (user) {  
-        // alert("Success chk: ");
+      success: function (user) {
         //window.open('./DashBoard.js', "_self");
         this.setState({
           loginStatus: true
@@ -64,33 +93,85 @@ class Login extends Component {
   };
 
   orderStocks(e) {
-    // console.log("value=======" + this.state.category);
     var Stocks = Parse.Object.extend("stocks");
     var stock = new Stocks();
 
     stock.set("quantity", this.state.quantity);
-    stock.set("unitprice", this.state.unitPrice);    
+    stock.set("unitprice", this.state.unitPrice);
     stock.set("totalprice", this.state.totalCost);
     stock.set("category", this.state.category);
     stock.set("comments", this.state.comments);
 
     stock.save(null, {
-      success: function(stock) {
+      success: function (stock) {
         alert('New Stocks has been added successfully.');
-      },
-      error: function(stock, error) {
+        this.setState({
+          activeTab: 1,
+          category: 'Choose a Category',
+          quantity: '',
+          unitPrice: '',
+          totalCost: '',
+          comments: ''
+        })
+        this.loadStocks()
+      }.bind(this),
+      error: function (stock, error) {
         alert('Failed to add new stcok, with error code: ' + error.message);
       }
-    });
+    })
   };
+
+  // loadBasicTabs() {
+  //   if (this.state.activeTab === 1)
+  //     return <Update />
+  //   else if (this.state.activeTab === 2)
+  //     return <DashBoard />
+  //   else if (this.state.activeTab === 3)
+  //     return <DashBoard />
+  // };
+
+  componentDidMount() {
+    if (this.state.activeTab === 1)
+      //console.log("Component mounted =======")
+      this.loadStocks()
+  }
+
+  handleListClick(dataT) {
+    this.setState({
+      loadUpdate: true
+    });
+    const data = dataT.id;
+    console.log("List Click =======" + data);
+    // this.loadUpdateComponent()
+  }
 
   render() {
     if (this.state.loginStatus) {
 
       const qtyValue = this.state.quantity;
       const unitValue = this.state.unitPrice;
+      //this.tryConvert(unitValue, qtyValue);
       this.state.totalCost = this.tryConvert(unitValue, qtyValue);
-      //return <Redirect to='./DashBoard.js' />;
+
+      if (this.state.returnedArrayValues.length > 0 && this.state.activeTab === 1) {
+        const data = this.state.returnedArrayValues;
+        var that = this;
+        var listItems = data.map(function (dataT, i) {
+          //console.log("Checking 2222 @@@@ ======" + dataT.get('category'));
+          return (
+            <List key={i}>
+              <ListItem key={i} onClick={that.handleListClick.bind(this, dataT)}>
+                {/* <Icon name="biscuit" /> */}
+                <ListItemText key={i}>{i + ". " + dataT.get('category')}
+                  <ListItemTextSecondary key={i}>{"Rem.Qty:" + dataT.get('quantity')}</ListItemTextSecondary>
+                </ListItemText>
+              </ListItem>
+              <ListDivider />
+            </List>
+          )
+        });
+      }
+
       return (
         <div className="content-login">
           <Toolbar fixed>
@@ -109,6 +190,7 @@ class Login extends Component {
               </FormField>
             </ToolbarRow>
           </Toolbar>
+
           <Content className="login-content">
             <Tabbar>
               <Tab
@@ -118,27 +200,35 @@ class Login extends Component {
                   </Tab>
               <Tab
                 active={this.state.activeTab === 2}
-                onClick={() => { this.setState({ activeTab: 2 }) }}>
+                onClick={() => { this.setState({activeTab: 2, loadUpdate : false}) 
+                }}>
                 Add Stocks
                   </Tab>
               <Tab
                 active={this.state.activeTab === 3}
-                onClick={() => { this.setState({ activeTab: 3 }) }}>
+                onClick={() => { this.setState({ activeTab: 3, loadUpdate : false}) }}>
                 Reports
                   </Tab>
-              <span className="mdc-tab-bar__indicator"></span>
-
+              {/* <span className="mdc-tab-bar__indicator"></span>  */}
+              {/* <Content>
+            {this.loadBasicTabs()}
+          </Content> */}
             </Tabbar>
 
-            {this.state.activeTab == '1' &&
-              <h2>
-                You have tab 1 unread messages.
-          </h2>
-            }
-            {this.state.activeTab == '2' &&
-
+            {this.state.activeTab === 1 && !this.state.loadUpdate &&
               <div>
-                <br />
+                {listItems}
+              </div>
+            }
+
+            {this.state.activeTab === 1 && this.state.loadUpdate &&
+              <div>
+                <Update />
+              </div>
+            }
+
+            {this.state.activeTab === 2 &&
+              <div>
                 <br />
                 <select
                   name="category"
@@ -168,7 +258,7 @@ class Login extends Component {
                   onChange={this.handleChange}
                 />
                 <Textfield
-                  name="totalValue"
+                  name="totalCost"
                   floatingLabel="Your Total Price"
                   helptext="For example, units (10) * price(Rs.25/-) (Auto Calculation Total-Rs.250/-) "
                   helptextPersistent
@@ -186,16 +276,14 @@ class Login extends Component {
                   }}
                 />
                 <br />
-                <br />
-                <br />
                 <Button raised accent onClick={this.orderStocks}>Add Stocks</Button>
               </div>
-
             }
-            {this.state.activeTab == '3' &&
+
+            {this.state.activeTab === 3 &&
               <h2>
                 Reports Page
-          </h2>
+              </h2>
             }
 
           </Content>
@@ -203,6 +291,7 @@ class Login extends Component {
       );
 
     }
+
     return (
       <div>
         <Toolbar fixed>
@@ -233,7 +322,6 @@ class Login extends Component {
           />
           <Button raised accent onClick={this.submitLogin}>Login</Button>
         </Content>
-
       </div>
     );
   }
