@@ -2,11 +2,59 @@ body {
   margin: auto;
   padding: 10;
   font-family: sans-serif;
+  height: 100%;
+}
+
+html {
+  height: 100%;
+  position: relative;
+}
+
+.before-login11 { 
+  background: url(images/Inventory1.jpg) no-repeat center center fixed; 
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+  margin: auto;
+  padding: 10px;
+  font-size: 100%;
+  height: auto;
+  background-position: 50% 50%;
+  position: relative;
+}
+
+.before-login {
+  background-image: url(images/Inventory1.jpg);
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: 50% 50%;
 }
 
 .login-content {
   margin: auto;
-  width: 100%;
-  height: 100%;
   padding: 10px;
+  font-size: 100%;
+  height: 100%;
+}
+
+img {
+  margin: 0 0 0 auto;
+}  
+
+.logoutImg {
+  margin : 0 0 0 10px;
+}
+
+.center-div
+{
+  position: absolute;
+  margin: auto;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 300px;
+  height: 300px;
+  border-radius: 3px;
 }
